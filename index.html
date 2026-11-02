@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market context</title>
+<style>
+:root{--bg:#fff;--fg:#111;--mu:#666;--ln:#ddd;--up:#0a7a3d;--dn:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--mu:#8b949e;--ln:#30363d;--up:#3fb950;--dn:#f85149}}
+body{margin:0;padding:12px;font:15px system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+h1{font-size:18px;margin:0 0 4px}
+#meta,#foot{color:var(--mu);font-size:12px}
+#tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
+#tabs button{flex:none;border:1px solid var(--ln);background:none;color:var(--fg);border-radius:14px;padding:6px 12px;font:inherit}
+#tabs button.on{background:var(--fg);color:var(--bg)}
+.r{border-top:1px solid var(--ln);padding:8px 0}
+.t{display:flex;justify-content:space-between;font-weight:600}
+.s{font-size:12px;color:var(--mu);margin-top:2px}
+.up{color:var(--up)}.dn{color:var(--dn)}
+</style></head><body>
+<h1>Market context</h1>
+<div id="meta">Loading…</div>
+<div id="tabs"></div>
+<div id="list"></div>
+<p id="foot">Scores are context, not trade signals or financial advice.</p>
+<script>
+var NAMES={CUR:"Currencies",PAIR:"Pairs",INDICES:"Indices",METALS:"Metals",ENERGY:"Energy",GRAINS:"Grains",CRYPTO:"Crypto",BONDS_EM:"Bonds & EM",INDICES_WORLD:"World indices",FX_EXOTIC:"Exotic FX"};
+var D,cur="CUR";
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
+function f(v){return v==null?"-":(v>0?"+":"")+v.toFixed(2)}
+function show(){
+var tabs=document.getElementById("tabs"),list=document.getElementById("list");
+tabs.textContent="";list.textContent="";
+Object.keys(NAMES).forEach(function(k){var b=el("button",k==cur?"on":"",NAMES[k]);b.onclick=function(){cur=k;show()};tabs.appendChild(b)});
+D.rows.filter(function(r){return r[1]==cur}).sort(function(a,b){return (b[2]==null?-999:b[2])-(a[2]==null?-999:a[2])}).forEach(function(r){
+var d=el("div","r"),t=el("div","t"),sc=r[2]==null?"-":(r[2]>0?"+":"")+Math.round(r[2]);
+t.appendChild(el("span","",r[0]));
+t.appendChild(el("span",r[2]>=15?"up":r[2]<=-15?"dn":"",sc));
+d.appendChild(t);
+d.appendChild(el("div","s",r[3]+" · conf "+r[4]));
+d.appendChild(el("div","s","P "+f(r[5])+"  F "+f(r[6])+"  M "+f(r[7])+"  R "+f(r[8])));
+if(r[9])d.appendChild(el("div","s",r[9].split("|").join(", ")));
+list.appendChild(d)})}
+fetch("data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+D=j;document.getElementById("meta").textContent="Data for "+j.date+" · regime "+j.regime+" · score v"+j.version;show()
+}).catch(function(){document.getElementById("meta").textContent="No data yet."});
+</script></body></html>
